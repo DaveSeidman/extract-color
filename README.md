@@ -6,6 +6,13 @@ Currently trying two different methods, one using graphicsmagick and another wit
 
 ---
 
+## Prerequisites:
+
+- Node.js
+- GraphicsMagick
+
+---
+
 To train, fill the training/images folder with images that correspond to the colors you want to classify.
 
 Then run `node index --train`
