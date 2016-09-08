@@ -2,21 +2,7 @@ var gm = require('gm'),
     Canvas = require('canvas'),
     fs = require('fs'),
     argv = require('yargs').argv,
-    colors = require('./colors.json'),
-    async = require('async');
-
-/*const colors = {
-    white    : [ 210, 210, 210 ],
-    blue     : [ 100, 150, 170 ],
-    yellow   : [ 240, 200, 85  ],
-    green    : [ 175, 190, 40  ],
-    orange   : [ 230, 90,  60  ],
-    red      : [ 235, 40,  60  ],
-    purple   : [ 60,  45,  85  ],
-    lavendar : [ 150, 110, 170 ]},
-*/
-
-
+    colors = require('./colors.json');
 
 var USE_CANVAS = false,
     SAMPLES = 512,
@@ -54,25 +40,24 @@ module.exports = (function() {
 
         // user provided image, classify it
         if(argv.image) {
-
             // make sure training has been run
             if(colors.length) {
-
                 if(USE_CANVAS) {
-
                     module.cvAvgColor(argv.image)
                     .then(module.findClosest);
                 }
                 else {
-                    module.gmAvgColor(argv.image)
-                    .then(result => {
-                        console.log("result", result);
-                        module.findClosest(result);
+
+                    var startTime = new Date();
+                    module.gmAvgColor(argv.image).then(result => {
+
+                        var closest = module.findClosest(result),
+                            duration = (new Date() - startTime)/1000;
+                        console.log("closest match:", closest.color, "\nconfidence:", closest.confidence, "\nduration:", duration, "seconds");
                     });
                 }
             }
             else {
-
                 console.log("colors not specified, please run in training mode: \nnode index --train");
                 return;
             }
@@ -211,7 +196,7 @@ module.exports = (function() {
                 }
                 else {
 
-                    console.log("could not process image", image ); //
+                    console.log("could not find image", image ); //
                     reject();
                 }
             });
@@ -223,7 +208,7 @@ module.exports = (function() {
 
         var closestOffset = 256 * 3;
         var closestColor;
-        var confidence;
+        var conf;
 
         for (var i = 0; i < colors.length; i++) {
 
@@ -233,16 +218,16 @@ module.exports = (function() {
 
             if(diff < closestOffset) {
 
-                confidence = closestOffset - diff;
+                conf = closestOffset - diff;
                 closestOffset = diff;
                 closestColor = colors[i];
             }
         }
 
-        console.log("closest color:", closestColor.color, "\nconfidence:", confidence);
+        return({ color:closestColor.color, confidence:conf });
     }
 
-
+    // check contrast
     module.contrast = (color) => {
 
         var avg = (color[0] + color[1] + color[2])/3;
@@ -254,7 +239,7 @@ module.exports = (function() {
         return offset;
     }
 
-
+    // take an array of [r,g,b] values and return the average
     module.average = (arrayOfColors) => {
 
         var totalColor = [0,0,0],
@@ -275,7 +260,7 @@ module.exports = (function() {
         return averageColor;
     }
 
-
+    // get hex values
     module.componentToHex = (c) => {
 
         var hex = c.toString(16);
