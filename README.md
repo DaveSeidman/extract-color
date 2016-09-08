@@ -4,6 +4,8 @@ Simple module to extract the "average" color from an image a la https://manu.nin
 
 Currently trying two different methods, one using graphicsmagick and another with Canvas.
 
+---
+
 To train, fill the training/images folder with images that correspond to the colors you want to classify.
 
 Then run `node index --train`
